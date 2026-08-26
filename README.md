@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Streaming AI Portfolio Assistant
 
-## Getting Started
+A production-ready AI-powered chat application built with Next.js and Google Gemini. The assistant helps portfolio visitors learn about Saba's skills, education, projects, and frontend AI engineering work through a streaming conversation.
 
-First, run the development server:
+## Project Overview
+
+The problem this project solves is that portfolio visitors may want quick answers about a developer's skills, projects, and background without searching through multiple sections of a portfolio. This project provides a conversational AI assistant that answers portfolio-related questions clearly and naturally. I chose this idea because it combines frontend development with a meaningful AI feature and gives visitors a faster way to explore portfolio information.
+
+## Live Demo
+
+https://fe-06-streaming-chat-zeta.vercel.app/
+
+## GitHub Repository
+
+https://github.com/devv-SabaNaz/fe-06-streaming-chat
+
+## Features
+
+- Streaming AI responses
+- Portfolio-focused AI assistant
+- User and AI message separation
+- Auto-scroll while responses are streaming
+- Jump-to-latest button
+- Loading/thinking state
+- Stop generation button
+- Empty conversation state
+- Disabled input while a response is being generated
+- Responsive interface
+- Server-side AI API route
+- Error handling for API failures
+
+## Tech Stack
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Vercel
+- Vercel AI SDK
+- Google Gemini
+
+## AI Integration
+
+The application uses the Vercel AI SDK with Google's Gemini model.
+
+The AI request is handled through:
+
+`app/api/chat/route.ts`
+
+The application uses `streamText()` to generate the response as a stream instead of waiting for the complete answer before displaying it.
+
+The AI is given portfolio-specific instructions so that it acts as a portfolio assistant rather than a generic chatbot.
+
+The assistant is instructed to:
+
+- Answer questions about Saba's portfolio
+- Explain her skills and education
+- Discuss her frontend and AI projects
+- Give clear and concise answers
+- Avoid inventing information
+- Tell the visitor when information is not available
+
+## Architecture
+
+The main application is divided into two parts:
+
+### Frontend
+
+`app/page.tsx`
+
+The frontend provides the chat interface. It manages:
+
+- User input
+- Conversation messages
+- Loading state
+- Streaming responses
+- Auto-scrolling
+- Stop generation
+- Jump-to-latest behavior
+
+### AI API
+
+`app/api/chat/route.ts`
+
+The API route:
+
+1. Receives the conversation messages.
+2. Converts the messages into the model format.
+3. Sends them to Google Gemini through the AI SDK.
+4. Streams the generated response back to the frontend.
+5. Returns a controlled error response if the AI request fails.
+
+## Local Setup
+
+### 1. Clone the repository
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+git clone https://github.com/devv-SabaNaz/fe-06-streaming-chat.git
+cd fe-06-streaming-chat
