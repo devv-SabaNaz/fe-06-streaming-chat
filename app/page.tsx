@@ -19,7 +19,7 @@ export default function Home() {
   const isLoading =
     status === "submitted" || status === "streaming";
 
-  // Check if user is near the bottom
+  // Check whether the user is near the bottom
   const handleScroll = () => {
     const container = messagesContainerRef.current;
 
@@ -33,7 +33,7 @@ export default function Home() {
     setIsPinnedToBottom(distanceFromBottom < 80);
   };
 
-  // Automatically scroll while new AI text is streaming
+  // Automatically scroll during streaming
   useEffect(() => {
     const container = messagesContainerRef.current;
 
@@ -45,7 +45,7 @@ export default function Home() {
     });
   }, [messages, isPinnedToBottom]);
 
-  // Jump back to the latest message
+  // Jump to latest message
   const jumpToLatest = () => {
     const container = messagesContainerRef.current;
 
@@ -73,136 +73,237 @@ export default function Home() {
     setIsPinnedToBottom(true);
   };
 
-  return (
-    <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
+  // Suggested prompts
+  const suggestedPrompts = [
+    "Tell me about Saba",
+    "What are Saba's technical skills?",
+    "Show me Saba's projects",
+    "Tell me about Saba's internship",
+  ];
 
-      <div className="mx-auto flex h-screen w-full max-w-4xl flex-col overflow-hidden p-4 sm:p-6">
+  const handleSuggestion = (prompt: string) => {
+    if (isLoading) return;
+
+    sendMessage({
+      text: prompt,
+    });
+
+    setIsPinnedToBottom(true);
+  };
+
+  return (
+    <main className="min-h-screen bg-slate-950 text-white">
+
+      <div className="mx-auto flex h-screen w-full max-w-5xl flex-col px-4 sm:px-6">
 
         {/* Header */}
-        <header className="border-b border-slate-800 py-6">
-          <h1 className="text-2xl font-bold sm:text-3xl">
-            Streaming AI Chat
-          </h1>
+        <header className="border-b border-slate-800 py-5">
 
-          <p className="mt-1 text-sm text-slate-400">
-            FE-06 • Streaming AI Engineering
-          </p>
+          <div className="flex items-center justify-between gap-4">
+
+            <div>
+              <div className="flex items-center gap-3">
+
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold shadow-lg shadow-blue-600/20">
+                  AI
+                </div>
+
+                <div>
+                  <h1 className="text-xl font-bold sm:text-2xl">
+                    Saba&apos;s AI Assistant
+                  </h1>
+
+                  <p className="text-xs text-slate-400 sm:text-sm">
+                    Portfolio & Career Assistant
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Online status */}
+            <div className="hidden items-center gap-2 rounded-full border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-400 sm:flex">
+
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+
+              AI Online
+
+            </div>
+
+          </div>
+
         </header>
 
-        {/* Chat messages area */}
+        {/* Chat area */}
         <section
           ref={messagesContainerRef}
           onScroll={handleScroll}
-          className="relative min-h-0 flex-1 space-y-4 overflow-y-auto py-6"
+          className="relative min-h-0 flex-1 overflow-y-auto py-6"
         >
 
+          {/* Empty state */}
           {messages.length === 0 && (
-            <div className="mt-20 text-center text-slate-400">
-              <p className="text-xl">
-                Start a conversation
+            <div className="mx-auto flex max-w-2xl flex-col items-center pt-10 text-center sm:pt-16">
+
+              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600/10 text-2xl ring-1 ring-blue-500/20">
+                ✨
+              </div>
+
+              <h2 className="text-2xl font-bold sm:text-3xl">
+                Welcome to Saba&apos;s AI Assistant
+              </h2>
+
+              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400 sm:text-base">
+                Ask me about Saba&apos;s skills, projects, frontend
+                development experience, internship, or portfolio.
               </p>
 
-              <p className="mt-2 text-sm">
-                Ask the AI assistant anything.
-              </p>
+              {/* Suggested prompts */}
+              <div className="mt-8 grid w-full gap-3 sm:grid-cols-2">
+
+                {suggestedPrompts.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => handleSuggestion(prompt)}
+                    className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-left text-sm text-slate-300 transition hover:border-blue-500 hover:bg-slate-800 hover:text-white"
+                  >
+                    <span className="mb-2 block text-blue-400">
+                      →
+                    </span>
+
+                    {prompt}
+                  </button>
+                ))}
+
+              </div>
+
             </div>
           )}
 
           {/* Messages */}
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.role === "user"
-                  ? "justify-end"
-                  : "justify-start"
-              }`}
-            >
+          <div className="space-y-5">
+
+            {messages.map((message) => (
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                key={message.id}
+                className={`flex ${
                   message.role === "user"
-                    ? "bg-blue-600"
-                    : "bg-slate-800"
+                    ? "justify-end"
+                    : "justify-start"
                 }`}
               >
 
-                <p className="mb-1 text-xs font-semibold opacity-70">
-                  {message.role === "user" ? "You" : "AI"}
-                </p>
+                <div
+                  className={`max-w-[90%] rounded-2xl px-4 py-3 sm:max-w-[75%] ${
+                    message.role === "user"
+                      ? "bg-blue-600 text-white"
+                      : "border border-slate-800 bg-slate-900 text-slate-200"
+                  }`}
+                >
 
-                {message.parts.map((part, index) =>
-                  part.type === "text" ? (
-                    <p
-                      key={index}
-                      className="whitespace-pre-wrap leading-6"
-                    >
-                      {part.text}
-                    </p>
-                  ) : null
-                )}
+                  <p className="mb-1 text-xs font-semibold opacity-60">
+                    {message.role === "user"
+                      ? "You"
+                      : "Saba's AI Assistant"}
+                  </p>
+
+                  {message.parts.map((part, index) =>
+                    part.type === "text" ? (
+                      <p
+                        key={index}
+                        className="whitespace-pre-wrap text-sm leading-7 sm:text-base"
+                      >
+                        {part.text}
+                      </p>
+                    ) : null
+                  )}
+
+                </div>
 
               </div>
-            </div>
-          ))}
+            ))}
+
+          </div>
 
           {/* Thinking indicator */}
           {status === "submitted" && (
-            <div className="text-sm text-slate-400">
+            <div className="mt-4 flex items-center gap-3 text-sm text-slate-400">
+
+              <div className="flex gap-1">
+
+                <span className="h-2 w-2 animate-bounce rounded-full bg-blue-500" />
+
+                <span className="h-2 w-2 animate-bounce rounded-full bg-blue-500 [animation-delay:150ms]" />
+
+                <span className="h-2 w-2 animate-bounce rounded-full bg-blue-500 [animation-delay:300ms]" />
+
+              </div>
+
               AI is thinking...
+
             </div>
           )}
 
-          {/* Jump to latest button */}
+          {/* Jump to latest */}
           {!isPinnedToBottom && (
             <div className="sticky bottom-4 flex justify-center">
+
               <button
                 type="button"
                 onClick={jumpToLatest}
-                className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold shadow-lg"
+                className="rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-semibold shadow-xl transition hover:border-blue-500 hover:bg-slate-800"
               >
                 ↓ Jump to latest
               </button>
+
             </div>
           )}
 
         </section>
 
-        {/* Message input */}
-        <form
-          onSubmit={handleSubmit}
-          className="border-t border-slate-800 pt-4"
-        >
+        {/* Input */}
+        <div className="border-t border-slate-800 py-4">
 
-          <div className="flex gap-2">
+          <form onSubmit={handleSubmit}>
 
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              disabled={isLoading}
-              className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 outline-none focus:border-blue-500"
-            />
+            <div className="flex gap-2 rounded-2xl border border-slate-700 bg-slate-900 p-2 transition focus-within:border-blue-500">
 
-            {isLoading ? (
-              <button
-                type="button"
-                onClick={stop}
-                className="rounded-xl bg-red-600 px-5 py-3 font-semibold"
-              >
-                Stop
-              </button>
-            ) : (
-              <button
-                type="submit"
-                className="rounded-xl bg-blue-600 px-5 py-3 font-semibold"
-              >
-                Send
-              </button>
-            )}
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about Saba's skills, projects, or experience..."
+                disabled={isLoading}
+                className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-slate-500 sm:text-base"
+              />
 
-          </div>
+              {isLoading ? (
+                <button
+                  type="button"
+                  onClick={stop}
+                  className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold transition hover:bg-red-500 sm:px-5"
+                >
+                  Stop
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!input.trim()}
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5"
+                >
+                  Send
+                </button>
+              )}
 
-        </form>
+            </div>
+
+            <p className="mt-2 text-center text-xs text-slate-600">
+              Powered by Next.js, AI SDK & Gemini
+            </p>
+
+          </form>
+
+        </div>
 
       </div>
 
