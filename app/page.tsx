@@ -40,6 +40,14 @@ export default function Home() {
     transport: new DefaultChatTransport({
       api: "/api/chat",
     }),
+
+    onFinish: ({ message }) => {
+      console.log("AI FINISHED MESSAGE:", message);
+    },
+
+    onError: (error) => {
+      console.error("AI CHAT ERROR:", error);
+    },
   });
 
   const isLoading = status === "submitted" || status === "streaming";
