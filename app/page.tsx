@@ -36,7 +36,13 @@ export default function Home() {
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const { messages, sendMessage, status, setMessages } = useChat({
+  const {
+    messages,
+    sendMessage,
+    status,
+    setMessages,
+    error,
+  } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
     }),
@@ -99,6 +105,15 @@ export default function Home() {
     setIsPinnedToBottom(true);
   };
 
+  const getMessageText = (message: (typeof messages)[number]) => {
+    return (
+      message.parts
+        ?.filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join("") ?? ""
+    );
+  };
+
   const handleCopy = async (messageId: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -129,14 +144,13 @@ export default function Home() {
 
     if (!previousUserMessage) return;
 
-    const text = previousUserMessage.parts
-      ?.filter((part) => part.type === "text")
-      .map((part) => part.text)
-      .join(" ");
+    const text = getMessageText(previousUserMessage);
 
     if (!text) return;
 
     setMessages(messages.slice(0, messageIndex));
+
+    setIsPinnedToBottom(true);
 
     await sendMessage({
       text,
@@ -232,7 +246,6 @@ export default function Home() {
             <section className="mx-auto flex max-w-4xl flex-col items-center">
               {/* Welcome Hero */}
               <div className="mb-10 mt-4 text-center sm:mt-8">
-                {/* AI Badge */}
                 <div
                   className={`mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${
                     darkMode
@@ -244,7 +257,6 @@ export default function Home() {
                   AI Career Assistant
                 </div>
 
-                {/* Icon */}
                 <div
                   className={`mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl text-4xl shadow-xl ${
                     darkMode
@@ -275,45 +287,20 @@ export default function Home() {
                     darkMode ? "text-slate-400" : "text-slate-500"
                   }`}
                 >
-                  <span
-                    className={`rounded-full border px-3 py-1.5 ${
-                      darkMode
-                        ? "border-slate-800 bg-slate-900"
-                        : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    Frontend
-                  </span>
-
-                  <span
-                    className={`rounded-full border px-3 py-1.5 ${
-                      darkMode
-                        ? "border-slate-800 bg-slate-900"
-                        : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    AI Engineering
-                  </span>
-
-                  <span
-                    className={`rounded-full border px-3 py-1.5 ${
-                      darkMode
-                        ? "border-slate-800 bg-slate-900"
-                        : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    Next.js
-                  </span>
-
-                  <span
-                    className={`rounded-full border px-3 py-1.5 ${
-                      darkMode
-                        ? "border-slate-800 bg-slate-900"
-                        : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    Gemini
-                  </span>
+                  {["Frontend", "AI Engineering", "Next.js", "Gemini"].map(
+                    (tag) => (
+                      <span
+                        key={tag}
+                        className={`rounded-full border px-3 py-1.5 ${
+                          darkMode
+                            ? "border-slate-800 bg-slate-900"
+                            : "border-slate-200 bg-white"
+                        }`}
+                      >
+                        {tag}
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -351,9 +338,7 @@ export default function Home() {
                       <div className="mb-4 flex items-center justify-between">
                         <span
                           className={`flex h-11 w-11 items-center justify-center rounded-xl text-xl ${
-                            darkMode
-                              ? "bg-slate-800"
-                              : "bg-slate-100"
+                            darkMode ? "bg-slate-800" : "bg-slate-100"
                           }`}
                         >
                           {suggestion.icon}
@@ -376,9 +361,7 @@ export default function Home() {
 
                       <p
                         className={`mt-1 text-sm leading-5 ${
-                          darkMode
-                            ? "text-slate-400"
-                            : "text-slate-500"
+                          darkMode ? "text-slate-400" : "text-slate-500"
                         }`}
                       >
                         {suggestion.question}
@@ -392,11 +375,7 @@ export default function Home() {
             <section className="mx-auto flex max-w-4xl flex-col gap-5">
               {messages.map((message) => {
                 const isUser = message.role === "user";
-
-                const messageText = message.parts
-                  ?.filter((part) => part.type === "text")
-                  .map((part) => part.text)
-                  .join("");
+                const messageText = getMessageText(message);
 
                 return (
                   <div
@@ -416,7 +395,6 @@ export default function Home() {
                           : "rounded-bl-md border border-slate-200 bg-white text-slate-800"
                       }`}
                     >
-                      {/* AI Label */}
                       {!isUser && (
                         <div
                           className={`mb-2 text-xs font-bold uppercase tracking-wide ${
@@ -429,71 +407,80 @@ export default function Home() {
                         </div>
                       )}
 
-                      {/* Markdown */}
-                      <div className="text-sm leading-6">
-                        <ReactMarkdown
-                          components={{
-                            h1: ({ children }) => (
-                              <h1 className="mb-3 mt-1 text-xl font-bold">
-                                {children}
-                              </h1>
-                            ),
+                      {/* Message */}
+                      {messageText ? (
+                        <div className="text-sm leading-6">
+                          <ReactMarkdown
+                            components={{
+                              h1: ({ children }) => (
+                                <h1 className="mb-3 mt-1 text-xl font-bold">
+                                  {children}
+                                </h1>
+                              ),
 
-                            h2: ({ children }) => (
-                              <h2 className="mb-3 mt-4 text-lg font-bold">
-                                {children}
-                              </h2>
-                            ),
+                              h2: ({ children }) => (
+                                <h2 className="mb-3 mt-4 text-lg font-bold">
+                                  {children}
+                                </h2>
+                              ),
 
-                            h3: ({ children }) => (
-                              <h3 className="mb-2 mt-4 text-base font-bold">
-                                {children}
-                              </h3>
-                            ),
+                              h3: ({ children }) => (
+                                <h3 className="mb-2 mt-4 text-base font-bold">
+                                  {children}
+                                </h3>
+                              ),
 
-                            p: ({ children }) => (
-                              <p className="mb-3 last:mb-0">
-                                {children}
-                              </p>
-                            ),
+                              p: ({ children }) => (
+                                <p className="mb-3 last:mb-0">
+                                  {children}
+                                </p>
+                              ),
 
-                            ul: ({ children }) => (
-                              <ul className="mb-3 list-disc space-y-1 pl-5">
-                                {children}
-                              </ul>
-                            ),
+                              ul: ({ children }) => (
+                                <ul className="mb-3 list-disc space-y-1 pl-5">
+                                  {children}
+                                </ul>
+                              ),
 
-                            ol: ({ children }) => (
-                              <ol className="mb-3 list-decimal space-y-1 pl-5">
-                                {children}
-                              </ol>
-                            ),
+                              ol: ({ children }) => (
+                                <ol className="mb-3 list-decimal space-y-1 pl-5">
+                                  {children}
+                                </ol>
+                              ),
 
-                            li: ({ children }) => (
-                              <li>{children}</li>
-                            ),
+                              li: ({ children }) => <li>{children}</li>,
 
-                            strong: ({ children }) => (
-                              <strong className="font-semibold">
-                                {children}
-                              </strong>
-                            ),
+                              strong: ({ children }) => (
+                                <strong className="font-semibold">
+                                  {children}
+                                </strong>
+                              ),
 
-                            a: ({ href, children }) => (
-                              <a
-                                href={href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="underline"
-                              >
-                                {children}
-                              </a>
-                            ),
-                          }}
-                        >
-                          {messageText}
-                        </ReactMarkdown>
-                      </div>
+                              a: ({ href, children }) => (
+                                <a
+                                  href={href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="underline"
+                                >
+                                  {children}
+                                </a>
+                              ),
+                            }}
+                          >
+                            {messageText}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        !isUser &&
+                        isLoading && (
+                          <div className="flex items-center gap-2 py-1">
+                            <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
+                            <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:150ms]" />
+                            <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:300ms]" />
+                          </div>
+                        )
+                      )}
 
                       {/* AI Actions */}
                       {!isUser && messageText && (
@@ -541,22 +528,11 @@ export default function Home() {
                 );
               })}
 
-              {/* Loading */}
-              {status === "submitted" && (
-                <div className="flex justify-start">
-                  <div
-                    className={`rounded-2xl rounded-bl-md border px-4 py-3 shadow-sm ${
-                      darkMode
-                        ? "border-slate-800 bg-slate-900"
-                        : "border-slate-200 bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:150ms]" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:300ms]" />
-                    </div>
-                  </div>
+              {/* API Error */}
+              {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  CareerCraft AI is temporarily unavailable. Please try again
+                  in a moment.
                 </div>
               )}
             </section>
