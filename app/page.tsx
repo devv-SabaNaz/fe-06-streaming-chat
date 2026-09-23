@@ -187,7 +187,7 @@ export default function Home() {
               + New Chat
             </button>
 
-            {/* Theme */}
+            {/* Dark Mode */}
             <button
               type="button"
               onClick={() => setDarkMode(!darkMode)}
@@ -201,7 +201,7 @@ export default function Home() {
               {darkMode ? "☀️" : "🌙"}
             </button>
 
-            {/* Status */}
+            {/* AI Status */}
             <div
               className={`hidden items-center gap-2 rounded-full border px-3 py-1.5 sm:flex ${
                 darkMode
@@ -230,42 +230,108 @@ export default function Home() {
         >
           {messages.length === 0 ? (
             <section className="mx-auto flex max-w-4xl flex-col items-center">
-              {/* Hero */}
-              <div className="mb-8 text-center">
+              {/* Welcome Hero */}
+              <div className="mb-10 mt-4 text-center sm:mt-8">
+                {/* AI Badge */}
                 <div
-                  className={`mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl text-3xl shadow-lg ${
+                  className={`mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${
                     darkMode
-                      ? "bg-white text-slate-900"
-                      : "bg-slate-900 text-white"
+                      ? "border-slate-800 bg-slate-900 text-slate-300"
+                      : "border-slate-200 bg-white text-slate-600"
+                  }`}
+                >
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  AI Career Assistant
+                </div>
+
+                {/* Icon */}
+                <div
+                  className={`mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl text-4xl shadow-xl ${
+                    darkMode
+                      ? "bg-white text-slate-900 shadow-black/20"
+                      : "bg-slate-900 text-white shadow-slate-300/40"
                   }`}
                 >
                   ✨
                 </div>
 
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                  Meet CareerCraft AI
+                <h2 className="text-3xl font-bold tracking-tight sm:text-5xl">
+                  Hi, I&apos;m CareerCraft AI
                 </h2>
 
                 <p
-                  className={`mx-auto mt-3 max-w-2xl text-sm leading-6 sm:text-base ${
+                  className={`mx-auto mt-4 max-w-2xl text-sm leading-7 sm:text-base ${
                     darkMode ? "text-slate-400" : "text-slate-500"
                   }`}
                 >
                   Explore Saba&apos;s skills, education, projects, and
-                  frontend AI engineering journey through an AI-powered
+                  Frontend AI Engineering journey through an AI-powered
                   conversation.
                 </p>
+
+                {/* Skill Tags */}
+                <div
+                  className={`mx-auto mt-5 flex max-w-xl flex-wrap justify-center gap-2 text-xs ${
+                    darkMode ? "text-slate-400" : "text-slate-500"
+                  }`}
+                >
+                  <span
+                    className={`rounded-full border px-3 py-1.5 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-900"
+                        : "border-slate-200 bg-white"
+                    }`}
+                  >
+                    Frontend
+                  </span>
+
+                  <span
+                    className={`rounded-full border px-3 py-1.5 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-900"
+                        : "border-slate-200 bg-white"
+                    }`}
+                  >
+                    AI Engineering
+                  </span>
+
+                  <span
+                    className={`rounded-full border px-3 py-1.5 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-900"
+                        : "border-slate-200 bg-white"
+                    }`}
+                  >
+                    Next.js
+                  </span>
+
+                  <span
+                    className={`rounded-full border px-3 py-1.5 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-900"
+                        : "border-slate-200 bg-white"
+                    }`}
+                  >
+                    Gemini
+                  </span>
+                </div>
               </div>
 
               {/* Suggestions */}
               <div className="w-full">
-                <p
-                  className={`mb-3 text-sm font-semibold ${
-                    darkMode ? "text-slate-300" : "text-slate-700"
-                  }`}
-                >
-                  Try asking:
-                </p>
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold">
+                    Explore Saba&apos;s profile
+                  </h3>
+
+                  <p
+                    className={`mt-1 text-xs ${
+                      darkMode ? "text-slate-500" : "text-slate-400"
+                    }`}
+                  >
+                    Choose a topic to start the conversation.
+                  </p>
+                </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   {suggestions.map((suggestion) => (
@@ -276,22 +342,28 @@ export default function Home() {
                         handleSuggestion(suggestion.question)
                       }
                       disabled={isLoading}
-                      className={`group rounded-2xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 ${
+                      className={`group rounded-2xl border p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 ${
                         darkMode
                           ? "border-slate-800 bg-slate-900 hover:border-slate-700"
                           : "border-slate-200 bg-white hover:border-slate-300"
                       }`}
                     >
-                      <div className="mb-3 flex items-center justify-between">
-                        <span className="text-2xl">
+                      <div className="mb-4 flex items-center justify-between">
+                        <span
+                          className={`flex h-11 w-11 items-center justify-center rounded-xl text-xl ${
+                            darkMode
+                              ? "bg-slate-800"
+                              : "bg-slate-100"
+                          }`}
+                        >
                           {suggestion.icon}
                         </span>
 
                         <span
-                          className={`transition ${
+                          className={`text-lg transition duration-200 group-hover:translate-x-1 ${
                             darkMode
                               ? "text-slate-600 group-hover:text-white"
-                              : "text-slate-300 group-hover:text-slate-600"
+                              : "text-slate-300 group-hover:text-slate-700"
                           }`}
                         >
                           →
@@ -357,7 +429,7 @@ export default function Home() {
                         </div>
                       )}
 
-                      {/* Markdown AI Response */}
+                      {/* Markdown */}
                       <div className="text-sm leading-6">
                         <ReactMarkdown
                           components={{
@@ -432,7 +504,6 @@ export default function Home() {
                               : "border-slate-100"
                           }`}
                         >
-                          {/* Copy */}
                           <button
                             type="button"
                             onClick={() =>
@@ -449,7 +520,6 @@ export default function Home() {
                               : "📋 Copy"}
                           </button>
 
-                          {/* Regenerate */}
                           <button
                             type="button"
                             onClick={() =>
@@ -483,9 +553,7 @@ export default function Home() {
                   >
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
-
                       <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:150ms]" />
-
                       <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:300ms]" />
                     </div>
                   </div>
