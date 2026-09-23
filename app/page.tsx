@@ -30,10 +30,12 @@ const suggestions = [
 export default function Home() {
   const [input, setInput] = useState("");
   const [isPinnedToBottom, setIsPinnedToBottom] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
     }),
@@ -87,30 +89,139 @@ export default function Home() {
     });
   };
 
+  const handleNewChat = () => {
+    if (isLoading) return;
+
+    setMessages([]);
+    setInput("");
+    setCopiedMessageId(null);
+    setIsPinnedToBottom(true);
+  };
+
+  const handleCopy = async (messageId: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+
+      setCopiedMessageId(messageId);
+
+      setTimeout(() => {
+        setCopiedMessageId(null);
+      }, 1500);
+    } catch (error) {
+      console.error("Copy failed:", error);
+    }
+  };
+
+  const handleRegenerate = async (messageId: string) => {
+    if (isLoading) return;
+
+    const messageIndex = messages.findIndex(
+      (message) => message.id === messageId
+    );
+
+    if (messageIndex === -1) return;
+
+    const previousUserMessage = [...messages]
+      .slice(0, messageIndex)
+      .reverse()
+      .find((message) => message.role === "user");
+
+    if (!previousUserMessage) return;
+
+    const text = previousUserMessage.parts
+      ?.filter((part) => part.type === "text")
+      .map((part) => part.text)
+      .join(" ");
+
+    if (!text) return;
+
+    setMessages(messages.slice(0, messageIndex));
+
+    await sendMessage({
+      text,
+    });
+  };
+
   return (
-    <main className="min-h-screen bg-[#f7f8fc] text-slate-900">
+    <main
+      className={`min-h-screen transition-colors duration-300 ${
+        darkMode
+          ? "bg-slate-950 text-white"
+          : "bg-[#f7f8fc] text-slate-900"
+      }`}
+    >
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-4 sm:px-6 lg:px-8">
+
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-slate-200 pb-4">
+        <header
+          className={`flex items-center justify-between border-b pb-4 ${
+            darkMode ? "border-slate-800" : "border-slate-200"
+          }`}
+        >
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
               CareerCraft AI
             </h1>
 
-            <p className="text-xs text-slate-500 sm:text-sm">
+            <p
+              className={`text-xs sm:text-sm ${
+                darkMode ? "text-slate-400" : "text-slate-500"
+              }`}
+            >
               Your AI-powered career companion
             </p>
           </div>
 
-          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <span className="text-xs font-medium text-slate-600">
-              AI Online
-            </span>
+          <div className="flex items-center gap-2">
+            {/* New Chat */}
+            <button
+              type="button"
+              onClick={handleNewChat}
+              disabled={isLoading || messages.length === 0}
+              className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${
+                darkMode
+                  ? "border-slate-700 bg-slate-900 hover:bg-slate-800"
+                  : "border-slate-200 bg-white hover:bg-slate-50"
+              } disabled:cursor-not-allowed disabled:opacity-40`}
+            >
+              + New Chat
+            </button>
+
+            {/* Theme */}
+            <button
+              type="button"
+              onClick={() => setDarkMode(!darkMode)}
+              className={`rounded-xl border px-3 py-2 text-sm transition ${
+                darkMode
+                  ? "border-slate-700 bg-slate-900 hover:bg-slate-800"
+                  : "border-slate-200 bg-white hover:bg-slate-50"
+              }`}
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? "☀️" : "🌙"}
+            </button>
+
+            {/* Status */}
+            <div
+              className={`hidden items-center gap-2 rounded-full border px-3 py-1.5 sm:flex ${
+                darkMode
+                  ? "border-slate-700 bg-slate-900"
+                  : "border-slate-200 bg-white"
+              }`}
+            >
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span
+                className={`text-xs font-medium ${
+                  darkMode ? "text-slate-300" : "text-slate-600"
+                }`}
+              >
+                AI Online
+              </span>
+            </div>
           </div>
         </header>
 
-        {/* Chat Area */}
+        {/* Chat */}
         <div
           ref={messagesContainerRef}
           onScroll={handleScroll}
@@ -118,9 +229,14 @@ export default function Home() {
         >
           {messages.length === 0 ? (
             <section className="mx-auto flex max-w-4xl flex-col items-center">
+
               {/* Hero */}
               <div className="mb-8 text-center">
-                <div className="mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-3xl shadow-lg">
+                <div
+                  className={`mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl text-3xl shadow-lg ${
+                    darkMode ? "bg-white text-slate-900" : "bg-slate-900"
+                  }`}
+                >
                   ✨
                 </div>
 
@@ -128,7 +244,11 @@ export default function Home() {
                   Meet CareerCraft AI
                 </h2>
 
-                <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                <p
+                  className={`mx-auto mt-3 max-w-2xl text-sm leading-6 sm:text-base ${
+                    darkMode ? "text-slate-400" : "text-slate-500"
+                  }`}
+                >
                   Explore Saba&apos;s skills, education, projects, and
                   frontend AI engineering journey through an AI-powered
                   conversation.
@@ -137,7 +257,11 @@ export default function Home() {
 
               {/* Suggestions */}
               <div className="w-full">
-                <p className="mb-3 text-sm font-semibold text-slate-700">
+                <p
+                  className={`mb-3 text-sm font-semibold ${
+                    darkMode ? "text-slate-300" : "text-slate-700"
+                  }`}
+                >
                   Try asking:
                 </p>
 
@@ -146,25 +270,43 @@ export default function Home() {
                     <button
                       key={suggestion.question}
                       type="button"
-                      onClick={() => handleSuggestion(suggestion.question)}
+                      onClick={() =>
+                        handleSuggestion(suggestion.question)
+                      }
                       disabled={isLoading}
-                      className="group rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                      className={`group rounded-2xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 ${
+                        darkMode
+                          ? "border-slate-800 bg-slate-900 hover:border-slate-700"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
                     >
                       <div className="mb-3 flex items-center justify-between">
                         <span className="text-2xl">
                           {suggestion.icon}
                         </span>
 
-                        <span className="text-slate-300 transition group-hover:text-slate-600">
+                        <span
+                          className={`transition ${
+                            darkMode
+                              ? "text-slate-600 group-hover:text-white"
+                              : "text-slate-300 group-hover:text-slate-600"
+                          }`}
+                        >
                           →
                         </span>
                       </div>
 
-                      <h3 className="font-semibold text-slate-800">
+                      <h3 className="font-semibold">
                         {suggestion.title}
                       </h3>
 
-                      <p className="mt-1 text-sm leading-5 text-slate-500">
+                      <p
+                        className={`mt-1 text-sm leading-5 ${
+                          darkMode
+                            ? "text-slate-400"
+                            : "text-slate-500"
+                        }`}
+                      >
                         {suggestion.question}
                       </p>
                     </button>
@@ -177,6 +319,11 @@ export default function Home() {
               {messages.map((message) => {
                 const isUser = message.role === "user";
 
+                const messageText = message.parts
+                  ?.filter((part) => part.type === "text")
+                  .map((part) => part.text)
+                  .join("");
+
                 return (
                   <div
                     key={message.id}
@@ -187,29 +334,71 @@ export default function Home() {
                     <div
                       className={`max-w-[88%] rounded-2xl px-4 py-3 shadow-sm ${
                         isUser
-                          ? "rounded-br-md bg-slate-900 text-white"
+                          ? darkMode
+                            ? "rounded-br-md bg-white text-slate-900"
+                            : "rounded-br-md bg-slate-900 text-white"
+                          : darkMode
+                          ? "rounded-bl-md border border-slate-800 bg-slate-900 text-slate-100"
                           : "rounded-bl-md border border-slate-200 bg-white text-slate-800"
                       }`}
                     >
                       {!isUser && (
-                        <div className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">
+                        <div
+                          className={`mb-2 text-xs font-bold uppercase tracking-wide ${
+                            darkMode
+                              ? "text-slate-500"
+                              : "text-slate-400"
+                          }`}
+                        >
                           CareerCraft AI
                         </div>
                       )}
 
                       <div className="whitespace-pre-wrap text-sm leading-6">
-                        {message.parts?.map((part, index) => {
-                          if (part.type === "text") {
-                            return (
-                              <span key={index}>
-                                {part.text}
-                              </span>
-                            );
-                          }
-
-                          return null;
-                        })}
+                        {messageText}
                       </div>
+
+                      {/* AI actions */}
+                      {!isUser && messageText && (
+                        <div
+                          className={`mt-3 flex items-center gap-2 border-t pt-2 ${
+                            darkMode
+                              ? "border-slate-800"
+                              : "border-slate-100"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleCopy(message.id, messageText)
+                            }
+                            className={`rounded-lg px-2 py-1 text-xs transition ${
+                              darkMode
+                                ? "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                            }`}
+                          >
+                            {copiedMessageId === message.id
+                              ? "✓ Copied"
+                              : "📋 Copy"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleRegenerate(message.id)
+                            }
+                            disabled={isLoading}
+                            className={`rounded-lg px-2 py-1 text-xs transition ${
+                              darkMode
+                                ? "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                            } disabled:opacity-40`}
+                          >
+                            🔄 Regenerate
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -217,7 +406,13 @@ export default function Home() {
 
               {status === "submitted" && (
                 <div className="flex justify-start">
-                  <div className="rounded-2xl rounded-bl-md border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                  <div
+                    className={`rounded-2xl rounded-bl-md border px-4 py-3 shadow-sm ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-900"
+                        : "border-slate-200 bg-white"
+                    }`}
+                  >
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
                       <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:150ms]" />
@@ -234,7 +429,11 @@ export default function Home() {
         <div className="mx-auto w-full max-w-4xl pb-2">
           <form
             onSubmit={handleSubmit}
-            className="rounded-2xl border border-slate-200 bg-white p-2 shadow-lg shadow-slate-200/50"
+            className={`rounded-2xl border p-2 shadow-lg transition ${
+              darkMode
+                ? "border-slate-800 bg-slate-900 shadow-black/20"
+                : "border-slate-200 bg-white shadow-slate-200/50"
+            }`}
           >
             <div className="flex items-end gap-2">
               <textarea
@@ -249,24 +448,38 @@ export default function Home() {
                 placeholder="Ask CareerCraft AI anything..."
                 rows={1}
                 disabled={isLoading}
-                className="max-h-32 min-h-12 flex-1 resize-none bg-transparent px-3 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
+                className={`max-h-32 min-h-12 flex-1 resize-none bg-transparent px-3 py-3 text-sm outline-none placeholder:text-slate-400 ${
+                  darkMode ? "text-white" : "text-slate-800"
+                }`}
               />
 
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                className={`rounded-xl px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                  darkMode
+                    ? "bg-white text-slate-900 hover:bg-slate-200"
+                    : "bg-slate-900 text-white hover:bg-slate-700"
+                }`}
               >
                 {isLoading ? "..." : "Send"}
               </button>
             </div>
 
-            <div className="px-3 pb-1 pt-1 text-xs text-slate-400">
+            <div
+              className={`px-3 pb-1 pt-1 text-xs ${
+                darkMode ? "text-slate-500" : "text-slate-400"
+              }`}
+            >
               Press Enter to send • Shift + Enter for a new line
             </div>
           </form>
 
-          <p className="mt-2 text-center text-[11px] text-slate-400">
+          <p
+            className={`mt-2 text-center text-[11px] ${
+              darkMode ? "text-slate-600" : "text-slate-400"
+            }`}
+          >
             CareerCraft AI provides information based on Saba&apos;s
             portfolio.
           </p>
