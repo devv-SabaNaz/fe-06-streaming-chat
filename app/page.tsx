@@ -5,29 +5,6 @@ import { DefaultChatTransport } from "ai";
 import ReactMarkdown from "react-markdown";
 import { useEffect, useRef, useState } from "react";
 
-const suggestions = [
-  {
-    title: "Saba's Skills",
-    question: "What skills does Saba have?",
-    icon: "💻",
-  },
-  {
-    title: "Her Projects",
-    question: "Tell me about Saba's projects.",
-    icon: "🚀",
-  },
-  {
-    title: "Education",
-    question: "What is Saba studying?",
-    icon: "🎓",
-  },
-  {
-    title: "AI Experience",
-    question: "What AI projects has Saba built?",
-    icon: "🤖",
-  },
-];
-
 export default function Home() {
   const [input, setInput] = useState("");
   const [isPinnedToBottom, setIsPinnedToBottom] = useState(true);
@@ -41,7 +18,6 @@ export default function Home() {
     sendMessage,
     status,
     setMessages,
-    error,
   } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
@@ -52,7 +28,6 @@ export default function Home() {
 
   useEffect(() => {
     const container = messagesContainerRef.current;
-
     if (!container || !isPinnedToBottom) return;
 
     container.scrollTop = container.scrollHeight;
@@ -60,7 +35,6 @@ export default function Home() {
 
   const handleScroll = () => {
     const container = messagesContainerRef.current;
-
     if (!container) return;
 
     const distanceFromBottom =
@@ -68,15 +42,15 @@ export default function Home() {
       container.scrollTop -
       container.clientHeight;
 
-    setIsPinnedToBottom(distanceFromBottom < 100);
+    setIsPinnedToBottom(distanceFromBottom < 80);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!input.trim() || isLoading) return;
-
     const message = input.trim();
+
+    if (!message || isLoading) return;
 
     setInput("");
     setIsPinnedToBottom(true);
@@ -97,8 +71,6 @@ export default function Home() {
   };
 
   const handleNewChat = () => {
-    if (isLoading) return;
-
     setMessages([]);
     setInput("");
     setCopiedMessageId(null);
@@ -114,28 +86,24 @@ export default function Home() {
     );
   };
 
-  const handleCopy = async (messageId: string, text: string) => {
+  const handleCopy = async (
+    messageId: string,
+    text: string
+  ) => {
     try {
       await navigator.clipboard.writeText(text);
-
       setCopiedMessageId(messageId);
 
       setTimeout(() => {
         setCopiedMessageId(null);
       }, 1500);
-    } catch (error) {
-      console.error("Copy failed:", error);
+    } catch {
+      // Ignore clipboard errors
     }
   };
 
-  const handleRegenerate = async (messageId: string) => {
+  const handleRegenerate = async (messageIndex: number) => {
     if (isLoading) return;
-
-    const messageIndex = messages.findIndex(
-      (message) => message.id === messageId
-    );
-
-    if (messageIndex === -1) return;
 
     const previousUserMessage = [...messages]
       .slice(0, messageIndex)
@@ -146,8 +114,6 @@ export default function Home() {
 
     const text = getMessageText(previousUserMessage);
 
-    if (!text) return;
-
     setMessages(messages.slice(0, messageIndex));
 
     setIsPinnedToBottom(true);
@@ -157,28 +123,52 @@ export default function Home() {
     });
   };
 
+  const suggestions = [
+    {
+      title: "Saba's Skills",
+      question: "What skills does Saba have?",
+      icon: "⚡",
+    },
+    {
+      title: "Her Projects",
+      question: "Tell me about Saba's projects.",
+      icon: "🚀",
+    },
+    {
+      title: "Education",
+      question: "What is Saba studying?",
+      icon: "🎓",
+    },
+    {
+      title: "AI Experience",
+      question: "What AI projects has Saba built?",
+      icon: "🤖",
+    },
+  ];
+
   return (
     <main
       className={`min-h-screen transition-colors duration-300 ${
         darkMode
           ? "bg-slate-950 text-white"
-          : "bg-[#f7f8fc] text-slate-900"
+          : "bg-slate-50 text-slate-900"
       }`}
     >
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header
-          className={`flex items-center justify-between border-b pb-4 ${
-            darkMode ? "border-slate-800" : "border-slate-200"
-          }`}
-        >
+      {/* Header */}
+      <header
+        className={`sticky top-0 z-50 border-b backdrop-blur-xl ${
+          darkMode
+            ? "border-slate-800 bg-slate-950/90"
+            : "border-slate-200 bg-white/90"
+        }`}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <div>
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+            <h1 className="text-xl font-bold tracking-tight">
               CareerCraft AI
             </h1>
-
             <p
-              className={`text-xs sm:text-sm ${
+              className={`text-xs ${
                 darkMode ? "text-slate-400" : "text-slate-500"
               }`}
             >
@@ -187,195 +177,119 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* New Chat */}
             <button
-              type="button"
               onClick={handleNewChat}
-              disabled={isLoading || messages.length === 0}
-              className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${
+              className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
                 darkMode
-                  ? "border-slate-700 bg-slate-900 hover:bg-slate-800"
-                  : "border-slate-200 bg-white hover:bg-slate-50"
-              } disabled:cursor-not-allowed disabled:opacity-40`}
+                  ? "border-slate-700 hover:bg-slate-800"
+                  : "border-slate-200 hover:bg-slate-100"
+              }`}
             >
-              + New Chat
+              New Chat
             </button>
 
-            {/* Dark Mode */}
             <button
-              type="button"
               onClick={() => setDarkMode(!darkMode)}
               className={`rounded-xl border px-3 py-2 text-sm transition ${
                 darkMode
-                  ? "border-slate-700 bg-slate-900 hover:bg-slate-800"
-                  : "border-slate-200 bg-white hover:bg-slate-50"
+                  ? "border-slate-700 hover:bg-slate-800"
+                  : "border-slate-200 hover:bg-slate-100"
               }`}
               aria-label="Toggle dark mode"
             >
               {darkMode ? "☀️" : "🌙"}
             </button>
+          </div>
+        </div>
+      </header>
 
-            {/* AI Status */}
-            <div
-              className={`hidden items-center gap-2 rounded-full border px-3 py-1.5 sm:flex ${
-                darkMode
-                  ? "border-slate-700 bg-slate-900"
-                  : "border-slate-200 bg-white"
+      {/* Main */}
+      <section className="mx-auto flex max-w-5xl flex-col px-4 sm:px-6">
+        {/* Welcome */}
+        {messages.length === 0 && (
+          <div className="flex min-h-[calc(100vh-150px)] flex-col items-center justify-center py-12">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 text-3xl shadow-lg">
+              ✨
+            </div>
+
+            <div className="mb-3 rounded-full border border-violet-200 bg-violet-50 px-4 py-1.5 text-xs font-semibold text-violet-700 dark:border-violet-900 dark:bg-violet-950 dark:text-violet-300">
+              AI Career Assistant
+            </div>
+
+            <h2 className="text-center text-3xl font-bold tracking-tight sm:text-5xl">
+              Hi, I'm CareerCraft AI
+            </h2>
+
+            <p
+              className={`mt-4 max-w-2xl text-center text-sm leading-6 sm:text-base ${
+                darkMode ? "text-slate-400" : "text-slate-600"
               }`}
             >
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Ask me about Saba Naz's skills, projects, education,
+              frontend development, or Frontend AI Engineering journey.
+            </p>
 
-              <span
-                className={`text-xs font-medium ${
-                  darkMode ? "text-slate-300" : "text-slate-600"
-                }`}
-              >
-                AI Online
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* Chat Area */}
-        <div
-          ref={messagesContainerRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-y-auto py-8"
-        >
-          {messages.length === 0 ? (
-            <section className="mx-auto flex max-w-4xl flex-col items-center">
-              {/* Welcome Hero */}
-              <div className="mb-10 mt-4 text-center sm:mt-8">
-                <div
-                  className={`mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${
-                    darkMode
-                      ? "border-slate-800 bg-slate-900 text-slate-300"
-                      : "border-slate-200 bg-white text-slate-600"
-                  }`}
-                >
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  AI Career Assistant
-                </div>
-
-                <div
-                  className={`mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl text-4xl shadow-xl ${
-                    darkMode
-                      ? "bg-white text-slate-900 shadow-black/20"
-                      : "bg-slate-900 text-white shadow-slate-300/40"
-                  }`}
-                >
-                  ✨
-                </div>
-
-                <h2 className="text-3xl font-bold tracking-tight sm:text-5xl">
-                  Hi, I&apos;m CareerCraft AI
-                </h2>
-
-                <p
-                  className={`mx-auto mt-4 max-w-2xl text-sm leading-7 sm:text-base ${
-                    darkMode ? "text-slate-400" : "text-slate-500"
-                  }`}
-                >
-                  Explore Saba&apos;s skills, education, projects, and
-                  Frontend AI Engineering journey through an AI-powered
-                  conversation.
-                </p>
-
-                {/* Skill Tags */}
-                <div
-                  className={`mx-auto mt-5 flex max-w-xl flex-wrap justify-center gap-2 text-xs ${
-                    darkMode ? "text-slate-400" : "text-slate-500"
-                  }`}
-                >
-                  {["Frontend", "AI Engineering", "Next.js", "Gemini"].map(
-                    (tag) => (
-                      <span
-                        key={tag}
-                        className={`rounded-full border px-3 py-1.5 ${
-                          darkMode
-                            ? "border-slate-800 bg-slate-900"
-                            : "border-slate-200 bg-white"
-                        }`}
-                      >
-                        {tag}
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
-
-              {/* Suggestions */}
-              <div className="w-full">
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold">
-                    Explore Saba&apos;s profile
-                  </h3>
-
-                  <p
-                    className={`mt-1 text-xs ${
-                      darkMode ? "text-slate-500" : "text-slate-400"
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              {["Frontend", "AI Engineering", "Next.js", "Gemini"].map(
+                (tag) => (
+                  <span
+                    key={tag}
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      darkMode
+                        ? "bg-slate-800 text-slate-300"
+                        : "bg-white text-slate-600 shadow-sm"
                     }`}
                   >
-                    Choose a topic to start the conversation.
-                  </p>
-                </div>
+                    {tag}
+                  </span>
+                )
+              )}
+            </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {suggestions.map((suggestion) => (
-                    <button
-                      key={suggestion.question}
-                      type="button"
-                      onClick={() =>
-                        handleSuggestion(suggestion.question)
-                      }
-                      disabled={isLoading}
-                      className={`group rounded-2xl border p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 ${
-                        darkMode
-                          ? "border-slate-800 bg-slate-900 hover:border-slate-700"
-                          : "border-slate-200 bg-white hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="mb-4 flex items-center justify-between">
-                        <span
-                          className={`flex h-11 w-11 items-center justify-center rounded-xl text-xl ${
-                            darkMode ? "bg-slate-800" : "bg-slate-100"
-                          }`}
-                        >
-                          {suggestion.icon}
-                        </span>
+            <div className="mt-10 grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2">
+              {suggestions.map((item) => (
+                <button
+                  key={item.title}
+                  onClick={() => handleSuggestion(item.question)}
+                  disabled={isLoading}
+                  className={`rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 ${
+                    darkMode
+                      ? "border-slate-800 bg-slate-900 hover:border-violet-700"
+                      : "border-slate-200 bg-white hover:border-violet-300 hover:shadow-md"
+                  }`}
+                >
+                  <div className="mb-2 text-xl">{item.icon}</div>
 
-                        <span
-                          className={`text-lg transition duration-200 group-hover:translate-x-1 ${
-                            darkMode
-                              ? "text-slate-600 group-hover:text-white"
-                              : "text-slate-300 group-hover:text-slate-700"
-                          }`}
-                        >
-                          →
-                        </span>
-                      </div>
+                  <div className="font-semibold">
+                    {item.title}
+                  </div>
 
-                      <h3 className="font-semibold">
-                        {suggestion.title}
-                      </h3>
+                  <div
+                    className={`mt-1 text-sm ${
+                      darkMode
+                        ? "text-slate-400"
+                        : "text-slate-500"
+                    }`}
+                  >
+                    {item.question}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
-                      <p
-                        className={`mt-1 text-sm leading-5 ${
-                          darkMode ? "text-slate-400" : "text-slate-500"
-                        }`}
-                      >
-                        {suggestion.question}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </section>
-          ) : (
-            <section className="mx-auto flex max-w-4xl flex-col gap-5">
-              {messages.map((message) => {
+        {/* Messages */}
+        {messages.length > 0 && (
+          <div
+            ref={messagesContainerRef}
+            onScroll={handleScroll}
+            className="h-[calc(100vh-220px)] overflow-y-auto py-8"
+          >
+            <div className="mx-auto max-w-4xl space-y-6">
+              {messages.map((message, index) => {
+                const text = getMessageText(message);
                 const isUser = message.role === "user";
-                const messageText = getMessageText(message);
 
                 return (
                   <div
@@ -385,122 +299,62 @@ export default function Home() {
                     }`}
                   >
                     <div
-                      className={`max-w-[88%] rounded-2xl px-4 py-3 shadow-sm ${
+                      className={`max-w-[90%] rounded-2xl px-5 py-4 sm:max-w-[80%] ${
                         isUser
-                          ? darkMode
-                            ? "rounded-br-md bg-white text-slate-900"
-                            : "rounded-br-md bg-slate-900 text-white"
+                          ? "bg-violet-600 text-white"
                           : darkMode
-                          ? "rounded-bl-md border border-slate-800 bg-slate-900 text-slate-100"
-                          : "rounded-bl-md border border-slate-200 bg-white text-slate-800"
+                          ? "border border-slate-800 bg-slate-900"
+                          : "border border-slate-200 bg-white shadow-sm"
                       }`}
                     >
                       {!isUser && (
-                        <div
-                          className={`mb-2 text-xs font-bold uppercase tracking-wide ${
-                            darkMode
-                              ? "text-slate-500"
-                              : "text-slate-400"
-                          }`}
-                        >
+                        <div className="mb-2 text-xs font-semibold text-violet-600">
                           CareerCraft AI
                         </div>
                       )}
 
-                      {/* Message */}
-                      {messageText ? (
-                        <div className="text-sm leading-6">
-                          <ReactMarkdown
-                            components={{
-                              h1: ({ children }) => (
-                                <h1 className="mb-3 mt-1 text-xl font-bold">
-                                  {children}
-                                </h1>
-                              ),
-
-                              h2: ({ children }) => (
-                                <h2 className="mb-3 mt-4 text-lg font-bold">
-                                  {children}
-                                </h2>
-                              ),
-
-                              h3: ({ children }) => (
-                                <h3 className="mb-2 mt-4 text-base font-bold">
-                                  {children}
-                                </h3>
-                              ),
-
-                              p: ({ children }) => (
-                                <p className="mb-3 last:mb-0">
-                                  {children}
-                                </p>
-                              ),
-
-                              ul: ({ children }) => (
-                                <ul className="mb-3 list-disc space-y-1 pl-5">
-                                  {children}
-                                </ul>
-                              ),
-
-                              ol: ({ children }) => (
-                                <ol className="mb-3 list-decimal space-y-1 pl-5">
-                                  {children}
-                                </ol>
-                              ),
-
-                              li: ({ children }) => <li>{children}</li>,
-
-                              strong: ({ children }) => (
-                                <strong className="font-semibold">
-                                  {children}
-                                </strong>
-                              ),
-
-                              a: ({ href, children }) => (
-                                <a
-                                  href={href}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="underline"
-                                >
-                                  {children}
-                                </a>
-                              ),
-                            }}
-                          >
-                            {messageText}
-                          </ReactMarkdown>
-                        </div>
+                      {text ? (
+                        isUser ? (
+                          <div className="whitespace-pre-wrap text-sm leading-6">
+                            {text}
+                          </div>
+                        ) : (
+                          <div className="prose prose-sm max-w-none dark:prose-invert">
+                            <ReactMarkdown
+                              components={{
+                                a: ({ children, ...props }) => (
+                                  <a
+                                    {...props}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    {children}
+                                  </a>
+                                ),
+                              }}
+                            >
+                              {text}
+                            </ReactMarkdown>
+                          </div>
+                        )
                       ) : (
-                        !isUser &&
-                        isLoading && (
-                          <div className="flex items-center gap-2 py-1">
-                            <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
-                            <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:150ms]" />
-                            <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:300ms]" />
+                        isLoading &&
+                        index === messages.length - 1 && (
+                          <div className="flex items-center gap-1">
+                            <span className="h-2 w-2 animate-bounce rounded-full bg-violet-500" />
+                            <span className="h-2 w-2 animate-bounce rounded-full bg-violet-500 [animation-delay:0.15s]" />
+                            <span className="h-2 w-2 animate-bounce rounded-full bg-violet-500 [animation-delay:0.3s]" />
                           </div>
                         )
                       )}
 
-                      {/* AI Actions */}
-                      {!isUser && messageText && (
-                        <div
-                          className={`mt-3 flex items-center gap-2 border-t pt-2 ${
-                            darkMode
-                              ? "border-slate-800"
-                              : "border-slate-100"
-                          }`}
-                        >
+                      {!isUser && text && !isLoading && (
+                        <div className="mt-4 flex items-center gap-3 border-t border-slate-200 pt-3 text-xs dark:border-slate-800">
                           <button
-                            type="button"
                             onClick={() =>
-                              handleCopy(message.id, messageText)
+                              handleCopy(message.id, text)
                             }
-                            className={`rounded-lg px-2 py-1 text-xs transition ${
-                              darkMode
-                                ? "text-slate-400 hover:bg-slate-800 hover:text-white"
-                                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                            }`}
+                            className="text-slate-500 transition hover:text-violet-600"
                           >
                             {copiedMessageId === message.id
                               ? "✓ Copied"
@@ -508,16 +362,10 @@ export default function Home() {
                           </button>
 
                           <button
-                            type="button"
                             onClick={() =>
-                              handleRegenerate(message.id)
+                              handleRegenerate(index)
                             }
-                            disabled={isLoading}
-                            className={`rounded-lg px-2 py-1 text-xs transition ${
-                              darkMode
-                                ? "text-slate-400 hover:bg-slate-800 hover:text-white"
-                                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                            } disabled:opacity-40`}
+                            className="text-slate-500 transition hover:text-violet-600"
                           >
                             🔄 Regenerate
                           </button>
@@ -527,78 +375,60 @@ export default function Home() {
                   </div>
                 );
               })}
-
-              {/* API Error */}
-              {error && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  CareerCraft AI is temporarily unavailable. Please try again
-                  in a moment.
-                </div>
-              )}
-            </section>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
 
         {/* Input */}
-        <div className="mx-auto w-full max-w-4xl pb-2">
+        <div className="sticky bottom-0 py-4">
           <form
             onSubmit={handleSubmit}
-            className={`rounded-2xl border p-2 shadow-lg transition ${
+            className={`mx-auto flex max-w-4xl items-center gap-2 rounded-2xl border p-2 shadow-lg ${
               darkMode
-                ? "border-slate-800 bg-slate-900 shadow-black/20"
-                : "border-slate-200 bg-white shadow-slate-200/50"
+                ? "border-slate-800 bg-slate-900"
+                : "border-slate-200 bg-white"
             }`}
           >
-            <div className="flex items-end gap-2">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
-                placeholder="Ask CareerCraft AI anything..."
-                rows={1}
-                disabled={isLoading}
-                className={`max-h-32 min-h-12 flex-1 resize-none bg-transparent px-3 py-3 text-sm outline-none placeholder:text-slate-400 ${
-                  darkMode ? "text-white" : "text-slate-800"
-                }`}
-              />
-
-              <button
-                type="submit"
-                disabled={!input.trim() || isLoading}
-                className={`rounded-xl px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
-                  darkMode
-                    ? "bg-white text-slate-900 hover:bg-slate-200"
-                    : "bg-slate-900 text-white hover:bg-slate-700"
-                }`}
-              >
-                {isLoading ? "..." : "Send"}
-              </button>
-            </div>
-
-            <div
-              className={`px-3 pb-1 pt-1 text-xs ${
-                darkMode ? "text-slate-500" : "text-slate-400"
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask CareerCraft AI about Saba..."
+              disabled={isLoading}
+              className={`min-w-0 flex-1 bg-transparent px-3 py-3 text-sm outline-none ${
+                darkMode
+                  ? "placeholder:text-slate-500"
+                  : "placeholder:text-slate-400"
               }`}
+            />
+
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Press Enter to send • Shift + Enter for a new line
-            </div>
+              {isLoading ? "..." : "Send"}
+            </button>
           </form>
 
+          <div
+            className={`mt-3 flex items-center justify-center gap-2 text-xs ${
+              darkMode ? "text-slate-500" : "text-slate-400"
+            }`}
+          >
+            <span className="h-2 w-2 rounded-full bg-green-500" />
+            AI Online
+          </div>
+
           <p
-            className={`mt-2 text-center text-[11px] ${
+            className={`mt-2 text-center text-xs ${
               darkMode ? "text-slate-600" : "text-slate-400"
             }`}
           >
-            CareerCraft AI provides information based on Saba&apos;s
-            portfolio.
+            CareerCraft AI focuses on Saba Naz's professional portfolio
+            and career information.
           </p>
         </div>
-      </div>
+      </section>
     </main>
   );
 }
