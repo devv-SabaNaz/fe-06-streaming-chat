@@ -13,12 +13,7 @@ export default function Home() {
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const {
-    messages,
-    sendMessage,
-    status,
-    setMessages,
-  } = useChat({
+  const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
     }),
@@ -45,7 +40,7 @@ export default function Home() {
     setIsPinnedToBottom(distanceFromBottom < 80);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const message = input.trim();
@@ -55,17 +50,17 @@ export default function Home() {
     setInput("");
     setIsPinnedToBottom(true);
 
-    await sendMessage({
+    sendMessage({
       text: message,
     });
   };
 
-  const handleSuggestion = async (question: string) => {
+  const handleSuggestion = (question: string) => {
     if (isLoading) return;
 
     setIsPinnedToBottom(true);
 
-    await sendMessage({
+    sendMessage({
       text: question,
     });
   };
@@ -86,10 +81,7 @@ export default function Home() {
     );
   };
 
-  const handleCopy = async (
-    messageId: string,
-    text: string
-  ) => {
+  const handleCopy = async (messageId: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedMessageId(messageId);
@@ -102,7 +94,7 @@ export default function Home() {
     }
   };
 
-  const handleRegenerate = async (messageIndex: number) => {
+  const handleRegenerate = (messageIndex: number) => {
     if (isLoading) return;
 
     const previousUserMessage = [...messages]
@@ -115,10 +107,9 @@ export default function Home() {
     const text = getMessageText(previousUserMessage);
 
     setMessages(messages.slice(0, messageIndex));
-
     setIsPinnedToBottom(true);
 
-    await sendMessage({
+    sendMessage({
       text,
     });
   };
@@ -167,6 +158,7 @@ export default function Home() {
             <h1 className="text-xl font-bold tracking-tight">
               CareerCraft AI
             </h1>
+
             <p
               className={`text-xs ${
                 darkMode ? "text-slate-400" : "text-slate-500"
@@ -260,15 +252,11 @@ export default function Home() {
                 >
                   <div className="mb-2 text-xl">{item.icon}</div>
 
-                  <div className="font-semibold">
-                    {item.title}
-                  </div>
+                  <div className="font-semibold">{item.title}</div>
 
                   <div
                     className={`mt-1 text-sm ${
-                      darkMode
-                        ? "text-slate-400"
-                        : "text-slate-500"
+                      darkMode ? "text-slate-400" : "text-slate-500"
                     }`}
                   >
                     {item.question}
@@ -319,14 +307,55 @@ export default function Home() {
                             {text}
                           </div>
                         ) : (
-                          <div className="prose prose-sm max-w-none dark:prose-invert">
+                          <div className="text-sm leading-6">
                             <ReactMarkdown
                               components={{
+                                h2: ({ children }) => (
+                                  <h2 className="mb-3 mt-2 text-lg font-bold">
+                                    {children}
+                                  </h2>
+                                ),
+
+                                h3: ({ children }) => (
+                                  <h3 className="mb-2 mt-4 font-semibold">
+                                    {children}
+                                  </h3>
+                                ),
+
+                                p: ({ children }) => (
+                                  <p className="mb-3 last:mb-0">
+                                    {children}
+                                  </p>
+                                ),
+
+                                ul: ({ children }) => (
+                                  <ul className="mb-3 ml-5 list-disc space-y-1">
+                                    {children}
+                                  </ul>
+                                ),
+
+                                ol: ({ children }) => (
+                                  <ol className="mb-3 ml-5 list-decimal space-y-1">
+                                    {children}
+                                  </ol>
+                                ),
+
+                                li: ({ children }) => (
+                                  <li className="pl-1">{children}</li>
+                                ),
+
+                                strong: ({ children }) => (
+                                  <strong className="font-semibold">
+                                    {children}
+                                  </strong>
+                                ),
+
                                 a: ({ children, ...props }) => (
                                   <a
                                     {...props}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    className="text-violet-600 underline"
                                   >
                                     {children}
                                   </a>
