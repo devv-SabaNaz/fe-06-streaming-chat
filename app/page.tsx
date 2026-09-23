@@ -2,6 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import ReactMarkdown from "react-markdown";
 import { useEffect, useRef, useState } from "react";
 
 const suggestions = [
@@ -151,7 +152,6 @@ export default function Home() {
       }`}
     >
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-4 sm:px-6 lg:px-8">
-
         {/* Header */}
         <header
           className={`flex items-center justify-between border-b pb-4 ${
@@ -210,6 +210,7 @@ export default function Home() {
               }`}
             >
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
+
               <span
                 className={`text-xs font-medium ${
                   darkMode ? "text-slate-300" : "text-slate-600"
@@ -221,7 +222,7 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Chat */}
+        {/* Chat Area */}
         <div
           ref={messagesContainerRef}
           onScroll={handleScroll}
@@ -229,12 +230,13 @@ export default function Home() {
         >
           {messages.length === 0 ? (
             <section className="mx-auto flex max-w-4xl flex-col items-center">
-
               {/* Hero */}
               <div className="mb-8 text-center">
                 <div
                   className={`mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl text-3xl shadow-lg ${
-                    darkMode ? "bg-white text-slate-900" : "bg-slate-900"
+                    darkMode
+                      ? "bg-white text-slate-900"
+                      : "bg-slate-900 text-white"
                   }`}
                 >
                   ✨
@@ -342,6 +344,7 @@ export default function Home() {
                           : "rounded-bl-md border border-slate-200 bg-white text-slate-800"
                       }`}
                     >
+                      {/* AI Label */}
                       {!isUser && (
                         <div
                           className={`mb-2 text-xs font-bold uppercase tracking-wide ${
@@ -354,11 +357,73 @@ export default function Home() {
                         </div>
                       )}
 
-                      <div className="whitespace-pre-wrap text-sm leading-6">
-                        {messageText}
+                      {/* Markdown AI Response */}
+                      <div className="text-sm leading-6">
+                        <ReactMarkdown
+                          components={{
+                            h1: ({ children }) => (
+                              <h1 className="mb-3 mt-1 text-xl font-bold">
+                                {children}
+                              </h1>
+                            ),
+
+                            h2: ({ children }) => (
+                              <h2 className="mb-3 mt-4 text-lg font-bold">
+                                {children}
+                              </h2>
+                            ),
+
+                            h3: ({ children }) => (
+                              <h3 className="mb-2 mt-4 text-base font-bold">
+                                {children}
+                              </h3>
+                            ),
+
+                            p: ({ children }) => (
+                              <p className="mb-3 last:mb-0">
+                                {children}
+                              </p>
+                            ),
+
+                            ul: ({ children }) => (
+                              <ul className="mb-3 list-disc space-y-1 pl-5">
+                                {children}
+                              </ul>
+                            ),
+
+                            ol: ({ children }) => (
+                              <ol className="mb-3 list-decimal space-y-1 pl-5">
+                                {children}
+                              </ol>
+                            ),
+
+                            li: ({ children }) => (
+                              <li>{children}</li>
+                            ),
+
+                            strong: ({ children }) => (
+                              <strong className="font-semibold">
+                                {children}
+                              </strong>
+                            ),
+
+                            a: ({ href, children }) => (
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline"
+                              >
+                                {children}
+                              </a>
+                            ),
+                          }}
+                        >
+                          {messageText}
+                        </ReactMarkdown>
                       </div>
 
-                      {/* AI actions */}
+                      {/* AI Actions */}
                       {!isUser && messageText && (
                         <div
                           className={`mt-3 flex items-center gap-2 border-t pt-2 ${
@@ -367,6 +432,7 @@ export default function Home() {
                               : "border-slate-100"
                           }`}
                         >
+                          {/* Copy */}
                           <button
                             type="button"
                             onClick={() =>
@@ -383,6 +449,7 @@ export default function Home() {
                               : "📋 Copy"}
                           </button>
 
+                          {/* Regenerate */}
                           <button
                             type="button"
                             onClick={() =>
@@ -404,6 +471,7 @@ export default function Home() {
                 );
               })}
 
+              {/* Loading */}
               {status === "submitted" && (
                 <div className="flex justify-start">
                   <div
@@ -415,7 +483,9 @@ export default function Home() {
                   >
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
+
                       <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:150ms]" />
+
                       <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:300ms]" />
                     </div>
                   </div>
